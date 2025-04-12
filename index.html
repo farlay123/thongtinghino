@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng Dụng Ghi Nợ</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+<body class="light-mode">
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch">
+        <label for="theme-switch" class="toggle-label">
+            <span class="toggle-icon">🌙</span>
+            <span class="toggle-icon">☀️</span>
+        </label>
+    </div>
+
+    <div class="login-container" id="login-section">
+        <div class="login-box">
+            <img src="logo.png" alt="Logo" class="logo">
+            <h1>Ứng Dụng Ghi Nợ</h1>
+            <p>Vui lòng chọn quyền truy cập của bạn</p>
+            
+            <div class="login-buttons">
+                <button id="admin-login" class="btn login-btn">Admin (Người ghi nợ)</button>
+                <button id="user-login" class="btn login-btn">Người tra cứu</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="app-section">
+        <header>
+            <div class="header-content">
+                <img src="logo.png" alt="Logo" class="app-logo">
+                <h1>Ứng Dụng Ghi Nợ</h1>
+                <div class="user-info">
+                    <span id="user-role-display">Người dùng</span>
+                    <button id="logout-btn" class="btn logout-btn">Đăng xuất</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="left-panel">
+                <div class="admin-panel" id="admin-panel">
+                    <h2>Ghi Nợ Mới</h2>
+                    <form id="debt-form">
+                        <div class="form-group">
+                            <label for="debtor-name">Tên người nợ</label>
+                            <input type="text" id="debtor-name" list="debtors-list" required>
+                            <datalist id="debtors-list"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="debt-date">Ngày</label>
+                            <input type="date" id="debt-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="debt-description">Nội dung</label>
+                            <input type="text" id="debt-description" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="debt-amount">Số tiền</label>
+                            <input type="number" id="debt-amount" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="debt-discount">Chiết khấu (tùy chọn)</label>
+                            <input type="number" id="debt-discount" min="0" value="0">
+                        </div>
+                        <button type="submit" class="btn submit-btn">Lưu ghi nợ</button>
+                    </form>
+                </div>
+
+                <div class="search-panel">
+                    <h2>Tra Cứu Nợ</h2>
+                    <div class="search-form">
+                        <div class="form-group">
+                            <label for="search-name">Tên người</label>
+                            <input type="text" id="search-name" list="search-debtors-list">
+                            <datalist id="search-debtors-list"></datalist>
+                        </div>
+                        <div class="date-range">
+                            <div class="form-group">
+                                <label for="start-date">Từ ngày</label>
+                                <input type="date" id="start-date">
+                            </div>
+                            <div class="form-group">
+                                <label for="end-date">Đến ngày</label>
+                                <input type="date" id="end-date">
+                            </div>
+                        </div>
+                        <button id="search-btn" class="btn search-btn">Tra cứu</button>
+                    </div>
+
+                    <div class="search-results">
+                        <h3>Kết quả tra cứu</h3>
+                        <table id="debt-table">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Người nợ</th>
+                                    <th>Nội dung</th>
+                                    <th>Số tiền</th>
+                                    <th>Giảm giá</th>
+                                    <th>Còn lại</th>
+                                    <th class="admin-only">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="debt-results">
+                                <!-- Kết quả sẽ được thêm vào đây -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="statistics">
+                    <h2>Thống Kê</h2>
+                    <div class="chart-container">
+                        <canvas id="debt-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="payment-info">
+                    <h2>Thông Tin Chuyển Khoản</h2>
+                    <div class="payment-details">
+                        <p><strong>Tên người nhận:</strong> Hoàng Minh Thản</p>
+                        <p><strong>STK:</strong> 956216528888 (Techcombank)</p>
+                        <div class="qr-code">
+                            <img src="qr-code.png" alt="Mã QR chuyển khoản">
+                        </div>
+                    </div>
+                    <div class="slogan">
+                        <p>"Ghi nợ xịn xò – Không lo quên số!"</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Modal xác nhận xóa -->
+        <div class="modal" id="delete-modal">
+            <div class="modal-content">
+                <h3>Xác nhận xóa</h3>
+                <p>Bạn có chắc chắn muốn xóa khoản nợ này?</p>
+                <div class="modal-buttons">
+                    <button id="confirm-delete" class="btn delete-btn">Xóa</button>
+                    <button id="cancel-delete" class="btn cancel-btn">Hủy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal chỉnh sửa nợ -->
+        <div class="modal" id="edit-modal">
+            <div class="modal-content">
+                <h3>Chỉnh sửa khoản nợ</h3>
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group">
+                        <label for="edit-debtor">Tên người nợ</label>
+                        <input type="text" id="edit-debtor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-date">Ngày</label>
+                        <input type="date" id="edit-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Nội dung</label>
+                        <input type="text" id="edit-description" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-amount">Số tiền</label>
+                        <input type="number" id="edit-amount" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-discount">Chiết khấu</label>
+                        <input type="number" id="edit-discount" min="0" value="0">
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn save-btn">Lưu</button>
+                        <button type="button" id="cancel-edit" class="btn cancel-btn">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
