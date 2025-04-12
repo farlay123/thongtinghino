@@ -4,13 +4,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ứng Dụng Ghi Nợ</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4e54c8;
+            --secondary-color: #8f94fb;
+            --text-color: #333;
+            --background-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --border-color: #e1e5ee;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --input-bg: #ffffff;
+        }
+
+        .dark-mode {
+            --primary-color: #6c72cb;
+            --secondary-color: #cb69c1;
+            --text-color: #f5f5f5;
+            --background-color: #1a1a2e;
+            --card-bg: #16213e;
+            --border-color: #0f3460;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --input-bg: #2a2a4a;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--background-color) 0%, var(--background-color) 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .app-gradient {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            width: 60px;
+            height: 30px;
+            background: var(--primary-color);
+            border-radius: 100px;
+            position: relative;
+            transition: background-color 0.2s;
+            padding: 0 5px;
+        }
+
+        .toggle-label .toggle-icon {
+            font-size: 14px;
+            color: white;
+        }
+
+        .toggle-label:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        #theme-switch {
+            height: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        #theme-switch:checked + .toggle-label:after {
+            left: calc(100% - 2px);
+            transform: translateX(-100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 5px 15px var(--shadow-color);
+        }
+
+        table {
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(78, 84, 200, 0.1);
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background-color: rgba(78, 84, 200, 0.05);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(78, 84, 200, 0.2);
+        }
+
+        .modal {
+            transition: opacity 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.5s forwards;
+        }
+
+        .qr-code:hover img {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+    </style>
 </head>
 <body class="light-mode">
-    <div class="theme-toggle">
+    <!-- Theme Toggle -->
+    <div class="fixed top-5 right-5 z-50">
         <input type="checkbox" id="theme-switch">
         <label for="theme-switch" class="toggle-label">
             <span class="toggle-icon">🌙</span>
@@ -18,175 +169,668 @@
         </label>
     </div>
 
-    <div class="login-container" id="login-section">
-        <div class="login-box">
-            <img src="logo.png" alt="Logo" class="logo">
-            <h1>Ứng Dụng Ghi Nợ</h1>
-            <p>Vui lòng chọn quyền truy cập của bạn</p>
+    <!-- Login Section -->
+    <div id="login-section" class="flex justify-center items-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md text-center animate-fadeIn" style="background: var(--card-bg);">
+            <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4b8.png" alt="Logo" class="w-24 h-24 mx-auto mb-6">
+            <h1 class="text-2xl font-bold mb-4" style="color: var(--primary-color);">Ứng Dụng Ghi Nợ</h1>
+            <p class="mb-6 text-gray-600 dark:text-gray-300">Vui lòng chọn quyền truy cập của bạn</p>
             
-            <div class="login-buttons">
-                <button id="admin-login" class="btn login-btn">Admin (Người ghi nợ)</button>
-                <button id="user-login" class="btn login-btn">Người tra cứu</button>
+            <div class="flex flex-col space-y-4">
+                <button id="admin-login" class="py-3 px-4 rounded-lg text-white font-medium app-gradient hover:opacity-90 transition-opacity">
+                    Admin (Người ghi nợ)
+                </button>
+                <button id="user-login" class="py-3 px-4 rounded-lg text-white font-medium app-gradient hover:opacity-90 transition-opacity">
+                    Người tra cứu
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="app-container hidden" id="app-section">
-        <header>
-            <div class="header-content">
-                <img src="logo.png" alt="Logo" class="app-logo">
-                <h1>Ứng Dụng Ghi Nợ</h1>
-                <div class="user-info">
-                    <span id="user-role-display">Người dùng</span>
-                    <button id="logout-btn" class="btn logout-btn">Đăng xuất</button>
+    <!-- Main App Container -->
+    <div id="app-section" class="hidden flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="app-gradient text-white py-4 px-6 shadow-md">
+            <div class="container mx-auto flex flex-col md:flex-row items-center justify-between">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4b8.png" alt="Logo" class="w-10 h-10 mr-3">
+                    <h1 class="text-xl font-bold">Ứng Dụng Ghi Nợ</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-role-display" class="font-medium">Người dùng</span>
+                    <button id="logout-btn" class="py-2 px-4 rounded-lg bg-white bg-opacity-20 text-white border border-white hover:bg-opacity-30 transition-colors">
+                        Đăng xuất
+                    </button>
                 </div>
             </div>
         </header>
 
-        <main>
-            <div class="left-panel">
-                <div class="admin-panel" id="admin-panel">
-                    <h2>Ghi Nợ Mới</h2>
-                    <form id="debt-form">
-                        <div class="form-group">
-                            <label for="debtor-name">Tên người nợ</label>
-                            <input type="text" id="debtor-name" list="debtors-list" required>
-                            <datalist id="debtors-list"></datalist>
-                        </div>
-                        <div class="form-group">
-                            <label for="debt-date">Ngày</label>
-                            <input type="date" id="debt-date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="debt-description">Nội dung</label>
-                            <input type="text" id="debt-description" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="debt-amount">Số tiền</label>
-                            <input type="number" id="debt-amount" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="debt-discount">Chiết khấu (tùy chọn)</label>
-                            <input type="number" id="debt-discount" min="0" value="0">
-                        </div>
-                        <button type="submit" class="btn submit-btn">Lưu ghi nợ</button>
-                    </form>
-                </div>
-
-                <div class="search-panel">
-                    <h2>Tra Cứu Nợ</h2>
-                    <div class="search-form">
-                        <div class="form-group">
-                            <label for="search-name">Tên người</label>
-                            <input type="text" id="search-name" list="search-debtors-list">
-                            <datalist id="search-debtors-list"></datalist>
-                        </div>
-                        <div class="date-range">
-                            <div class="form-group">
-                                <label for="start-date">Từ ngày</label>
-                                <input type="date" id="start-date">
+        <!-- Main Content -->
+        <main class="flex-1 container mx-auto p-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Panel -->
+                <div class="space-y-6">
+                    <!-- Admin Panel (visible only to admin) -->
+                    <div id="admin-panel" class="hidden rounded-xl p-6 card-shadow animate-fadeInUp" style="background: var(--card-bg);">
+                        <h2 class="text-xl font-bold pb-4 mb-4 border-b" style="color: var(--primary-color); border-color: var(--border-color);">Ghi Nợ Mới</h2>
+                        <form id="debt-form">
+                            <div class="mb-4">
+                                <label for="debtor-name" class="block mb-2 font-medium">Tên người nợ</label>
+                                <input type="text" id="debtor-name" list="debtors-list" required>
+                                <datalist id="debtors-list"></datalist>
                             </div>
-                            <div class="form-group">
-                                <label for="end-date">Đến ngày</label>
-                                <input type="date" id="end-date">
+                            <div class="mb-4">
+                                <label for="debt-date" class="block mb-2 font-medium">Ngày</label>
+                                <input type="date" id="debt-date" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="debt-description" class="block mb-2 font-medium">Nội dung</label>
+                                <input type="text" id="debt-description" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="debt-amount" class="block mb-2 font-medium">Số tiền</label>
+                                <input type="number" id="debt-amount" min="0" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="debt-discount" class="block mb-2 font-medium">Chiết khấu (tùy chọn)</label>
+                                <input type="number" id="debt-discount" min="0" value="0">
+                            </div>
+                            <button type="submit" class="w-full py-3 px-4 rounded-lg text-white font-medium transition-colors" style="background: var(--primary-color);">
+                                Lưu ghi nợ
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Search Panel -->
+                    <div class="rounded-xl p-6 card-shadow animate-fadeInUp" style="background: var(--card-bg);">
+                        <h2 class="text-xl font-bold pb-4 mb-4 border-b" style="color: var(--primary-color); border-color: var(--border-color);">Tra Cứu Nợ</h2>
+                        <div class="mb-6">
+                            <div class="mb-4">
+                                <label for="search-name" class="block mb-2 font-medium">Tên người</label>
+                                <input type="text" id="search-name" list="search-debtors-list">
+                                <datalist id="search-debtors-list"></datalist>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="start-date" class="block mb-2 font-medium">Từ ngày</label>
+                                    <input type="date" id="start-date">
+                                </div>
+                                <div>
+                                    <label for="end-date" class="block mb-2 font-medium">Đến ngày</label>
+                                    <input type="date" id="end-date">
+                                </div>
+                            </div>
+                            <button id="search-btn" class="w-full py-3 px-4 rounded-lg text-white font-medium transition-colors" style="background: var(--primary-color);">
+                                Tra cứu
+                            </button>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4" style="color: var(--primary-color);">Kết quả tra cứu</h3>
+                            <div class="overflow-x-auto">
+                                <table id="debt-table" class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Người nợ</th>
+                                            <th>Nội dung</th>
+                                            <th>Số tiền</th>
+                                            <th>Giảm giá</th>
+                                            <th>Còn lại</th>
+                                            <th class="admin-only">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="debt-results">
+                                        <!-- Kết quả sẽ được thêm vào đây -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <button id="search-btn" class="btn search-btn">Tra cứu</button>
-                    </div>
-
-                    <div class="search-results">
-                        <h3>Kết quả tra cứu</h3>
-                        <table id="debt-table">
-                            <thead>
-                                <tr>
-                                    <th>Ngày</th>
-                                    <th>Người nợ</th>
-                                    <th>Nội dung</th>
-                                    <th>Số tiền</th>
-                                    <th>Giảm giá</th>
-                                    <th>Còn lại</th>
-                                    <th class="admin-only">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="debt-results">
-                                <!-- Kết quả sẽ được thêm vào đây -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="right-panel">
-                <div class="statistics">
-                    <h2>Thống Kê</h2>
-                    <div class="chart-container">
-                        <canvas id="debt-chart"></canvas>
                     </div>
                 </div>
 
-                <div class="payment-info">
-                    <h2>Thông Tin Chuyển Khoản</h2>
-                    <div class="payment-details">
-                        <p><strong>Tên người nhận:</strong> Hoàng Minh Thản</p>
-                        <p><strong>STK:</strong> 956216528888 (Techcombank)</p>
-                        <div class="qr-code">
-                            <img src="qr-code.png" alt="Mã QR chuyển khoản">
+                <!-- Right Panel -->
+                <div class="space-y-6">
+                    <!-- Statistics -->
+                    <div class="rounded-xl p-6 card-shadow animate-fadeInUp" style="background: var(--card-bg);">
+                        <h2 class="text-xl font-bold pb-4 mb-4 border-b" style="color: var(--primary-color); border-color: var(--border-color);">Thống Kê</h2>
+                        <div class="h-64 md:h-80">
+                            <canvas id="debt-chart"></canvas>
                         </div>
                     </div>
-                    <div class="slogan">
-                        <p>"Ghi nợ xịn xò – Không lo quên số!"</p>
+
+                    <!-- Payment Info -->
+                    <div class="rounded-xl p-6 card-shadow animate-fadeInUp" style="background: var(--card-bg);">
+                        <h2 class="text-xl font-bold pb-4 mb-4 border-b" style="color: var(--primary-color); border-color: var(--border-color);">Thông Tin Chuyển Khoản</h2>
+                        <div class="space-y-3 mb-6">
+                            <p><strong>Tên người nhận:</strong> Hoàng Minh Thản</p>
+                            <p><strong>STK:</strong> 956216528888 (Techcombank)</p>
+                        </div>
+                        <div class="qr-code flex justify-center mb-6">
+                            <img src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js" alt="Mã QR chuyển khoản" class="w-56 h-56 border rounded-lg p-2" style="border-color: var(--border-color);">
+                        </div>
+                        <div class="text-center italic font-medium" style="color: var(--primary-color);">
+                            <p>"Ghi nợ xịn xò – Không lo quên số!"</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
-        
-        <!-- Modal xác nhận xóa -->
-        <div class="modal" id="delete-modal">
-            <div class="modal-content">
-                <h3>Xác nhận xóa</h3>
-                <p>Bạn có chắc chắn muốn xóa khoản nợ này?</p>
-                <div class="modal-buttons">
-                    <button id="confirm-delete" class="btn delete-btn">Xóa</button>
-                    <button id="cancel-delete" class="btn cancel-btn">Hủy</button>
-                </div>
-            </div>
-        </div>
+    </div>
 
-        <!-- Modal chỉnh sửa nợ -->
-        <div class="modal" id="edit-modal">
-            <div class="modal-content">
-                <h3>Chỉnh sửa khoản nợ</h3>
-                <form id="edit-form">
-                    <input type="hidden" id="edit-id">
-                    <div class="form-group">
-                        <label for="edit-debtor">Tên người nợ</label>
-                        <input type="text" id="edit-debtor" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-date">Ngày</label>
-                        <input type="date" id="edit-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-description">Nội dung</label>
-                        <input type="text" id="edit-description" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-amount">Số tiền</label>
-                        <input type="number" id="edit-amount" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-discount">Chiết khấu</label>
-                        <input type="number" id="edit-discount" min="0" value="0">
-                    </div>
-                    <div class="modal-buttons">
-                        <button type="submit" class="btn save-btn">Lưu</button>
-                        <button type="button" id="cancel-edit" class="btn cancel-btn">Hủy</button>
-                    </div>
-                </form>
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 hidden justify-center items-center modal">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-md mx-4 animate-fadeIn" style="background: var(--card-bg);">
+            <h3 class="text-xl font-bold mb-4" style="color: var(--primary-color);">Xác nhận xóa</h3>
+            <p class="mb-6">Bạn có chắc chắn muốn xóa khoản nợ này?</p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancel-delete" class="py-2 px-4 rounded-lg text-white font-medium transition-colors" style="background: #6c757d;">
+                    Hủy
+                </button>
+                <button id="confirm-delete" class="py-2 px-4 rounded-lg text-white font-medium transition-colors" style="background: var(--danger-color);">
+                    Xóa
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Edit Debt Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden justify-center items-center modal">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-md w-full mx-4 animate-fadeIn" style="background: var(--card-bg);">
+            <h3 class="text-xl font-bold mb-4" style="color: var(--primary-color);">Chỉnh sửa khoản nợ</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="mb-4">
+                    <label for="edit-debtor" class="block mb-2 font-medium">Tên người nợ</label>
+                    <input type="text" id="edit-debtor" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-date" class="block mb-2 font-medium">Ngày</label>
+                    <input type="date" id="edit-date" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-description" class="block mb-2 font-medium">Nội dung</label>
+                    <input type="text" id="edit-description" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-amount" class="block mb-2 font-medium">Số tiền</label>
+                    <input type="number" id="edit-amount" min="0" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-discount" class="block mb-2 font-medium">Chiết khấu</label>
+                    <input type="number" id="edit-discount" min="0" value="0">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-edit" class="py-2 px-4 rounded-lg text-white font-medium transition-colors" style="background: #6c757d;">
+                        Hủy
+                    </button>
+                    <button type="submit" class="py-2 px-4 rounded-lg text-white font-medium transition-colors" style="background: var(--primary-color);">
+                        Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let debts = [];
+        let userRole = 'user';
+        let chart;
+        let deleteId = null;
+        let currentDebtor = '';
+
+        // Données de démonstration
+        const sampleDebtors = ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D', 'Hoàng Văn E'];
+        const sampleDebts = [
+            { id: 1, debtor: 'Nguyễn Văn A', date: '2023-06-15', description: 'Tiền ăn trưa', amount: 150000, discount: 0, total: 150000 },
+            { id: 2, debtor: 'Trần Thị B', date: '2023-06-18', description: 'Tiền taxi chung', amount: 200000, discount: 20000, total: 180000 },
+            { id: 3, debtor: 'Lê Văn C', date: '2023-06-20', description: 'Tiền cafe', amount: 50000, discount: 0, total: 50000 },
+            { id: 4, debtor: 'Phạm Thị D', date: '2023-06-25', description: 'Đặt đồ ăn', amount: 320000, discount: 30000, total: 290000 },
+            { id: 5, debtor: 'Hoàng Văn E', date: '2023-06-30', description: 'Vay tiền mua đồ', amount: 500000, discount: 0, total: 500000 }
+        ];
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger les données
+            loadData();
+            
+            // Configurer les événements
+            setupEventListeners();
+            
+            // Mettre à jour les listes
+            updateDebtorLists();
+            
+            // Vérifier le thème
+            checkTheme();
+        });
+
+        // Vérifier et appliquer le thème sauvegardé
+        function checkTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-switch').checked = true;
+            }
+        }
+
+        // Configurer les écouteurs d'événements
+        function setupEventListeners() {
+            // Login et logout
+            document.getElementById('admin-login').addEventListener('click', () => login('admin'));
+            document.getElementById('user-login').addEventListener('click', () => login('user'));
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            
+            // Thème
+            document.getElementById('theme-switch').addEventListener('change', toggleTheme);
+            
+            // Formulaire de dette
+            document.getElementById('debt-form').addEventListener('submit', addDebt);
+            
+            // Recherche
+            document.getElementById('search-btn').addEventListener('click', searchDebts);
+            document.getElementById('search-name').addEventListener('input', autoSearch);
+            document.getElementById('start-date').addEventListener('change', autoSearch);
+            document.getElementById('end-date').addEventListener('change', autoSearch);
+            
+            // Modals
+            document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+            document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
+            document.getElementById('edit-form').addEventListener('submit', saveEdit);
+            document.getElementById('cancel-edit').addEventListener('click', closeEditModal);
+        }
+
+        // Charger les données
+        function loadData() {
+            const savedDebts = localStorage.getItem('debts');
+            if (savedDebts) {
+                debts = JSON.parse(savedDebts);
+            } else {
+                // Utiliser des données de démonstration si aucune donnée n'existe
+                debts = [...sampleDebts];
+                saveData();
+            }
+        }
+
+        // Sauvegarder les données
+        function saveData() {
+            localStorage.setItem('debts', JSON.stringify(debts));
+            updateDebtorLists();
+        }
+
+        // Mettre à jour les listes de débiteurs pour l'autocomplétion
+        function updateDebtorLists() {
+            const debtorsList = document.getElementById('debtors-list');
+            const searchDebtorsList = document.getElementById('search-debtors-list');
+            
+            // Obtenir la liste unique des débiteurs
+            const uniqueDebtors = [...new Set(debts.map(debt => debt.debtor))];
+            
+            // Vider les listes
+            debtorsList.innerHTML = '';
+            searchDebtorsList.innerHTML = '';
+            
+            // Remplir les listes
+            uniqueDebtors.forEach(debtor => {
+                debtorsList.innerHTML += `<option value="${debtor}">`;
+                searchDebtorsList.innerHTML += `<option value="${debtor}">`;
+            });
+        }
+
+        // Login
+        function login(role) {
+            userRole = role;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            document.getElementById('user-role-display').textContent = role === 'admin' ? 'Admin' : 'Người tra cứu';
+            
+            // Afficher/cacher le panneau admin selon le rôle
+            if (role === 'admin') {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'table-cell');
+            } else {
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            }
+            
+            // Mettre à jour l'interface
+            searchDebts();
+            updateChart();
+        }
+
+        // Logout
+        function logout() {
+            document.getElementById('app-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+
+        // Toggle du thème
+        function toggleTheme() {
+            const isChecked = document.getElementById('theme-switch').checked;
+            if (isChecked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Ajouter une dette
+        function addDebt(e) {
+            e.preventDefault();
+            
+            const debtor = document.getElementById('debtor-name').value;
+            const date = document.getElementById('debt-date').value;
+            const description = document.getElementById('debt-description').value;
+            const amount = parseFloat(document.getElementById('debt-amount').value);
+            const discount = parseFloat(document.getElementById('debt-discount').value) || 0;
+            
+            const newDebt = {
+                id: Date.now(),
+                debtor,
+                date,
+                description,
+                amount,
+                discount,
+                total: amount - discount
+            };
+            
+            debts.push(newDebt);
+            saveData();
+            searchDebts();
+            updateChart();
+            
+            // Animation et réinitialisation du formulaire
+            const submitBtn = document.querySelector('#debt-form button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Đã lưu!';
+            submitBtn.style.backgroundColor = 'var(--success-color)';
+            
+            setTimeout(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.style.backgroundColor = 'var(--primary-color)';
+            }, 1500);
+            
+            document.getElementById('debt-form').reset();
+        }
+
+        // Recherche de dettes
+        function searchDebts() {
+            const nameFilter = document.getElementById('search-name').value.toLowerCase();
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            let filteredDebts = [...debts];
+            
+            // Appliquer les filtres
+            if (nameFilter) {
+                filteredDebts = filteredDebts.filter(debt => 
+                    debt.debtor.toLowerCase().includes(nameFilter)
+                );
+                currentDebtor = nameFilter;
+            } else {
+                currentDebtor = '';
+            }
+            
+            if (startDate) {
+                filteredDebts = filteredDebts.filter(debt => debt.date >= startDate);
+            }
+            
+            if (endDate) {
+                filteredDebts = filteredDebts.filter(debt => debt.date <= endDate);
+            }
+            
+            // Traiter et afficher les résultats
+            displayDebts(processDebts(filteredDebts));
+            updateChart();
+        }
+
+        // Auto-recherche lorsque les filtres changent
+        function autoSearch() {
+            searchDebts();
+        }
+
+        // Traitement des dettes pour compenser les dettes croisées
+        function processDebts(debtList) {
+            // Cette fonction pourrait être améliorée pour gérer la compensation des dettes croisées
+            return debtList;
+        }
+
+        // Afficher les dettes dans le tableau
+        function displayDebts(debtList) {
+            const tableBody = document.getElementById('debt-results');
+            tableBody.innerHTML = '';
+            
+            if (debtList.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">Không có kết quả nào được tìm thấy</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Trier par date (plus récent en premier)
+            debtList.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Formatter les nombres
+            const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+            
+            // Afficher chaque dette
+            debtList.forEach(debt => {
+                const row = document.createElement('tr');
+                
+                // Formater la date pour l'affichage
+                const dateObj = new Date(debt.date);
+                const formattedDate = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${debt.debtor}</td>
+                    <td>${debt.description}</td>
+                    <td>${formatter.format(debt.amount)}</td>
+                    <td>${formatter.format(debt.discount)}</td>
+                    <td>${formatter.format(debt.total)}</td>
+                `;
+                
+                // Ajouter les boutons d'action pour l'admin
+                if (userRole === 'admin') {
+                    const actionsCell = document.createElement('td');
+                    actionsCell.className = 'admin-only';
+                    actionsCell.innerHTML = `
+                        <div class="flex space-x-2">
+                            <button class="py-1 px-3 rounded text-xs font-medium bg-yellow-500 text-white edit-btn" data-id="${debt.id}">
+                                Sửa
+                            </button>
+                            <button class="py-1 px-3 rounded text-xs font-medium bg-red-500 text-white delete-btn" data-id="${debt.id}">
+                                Xóa
+                            </button>
+                        </div>
+                    `;
+                    row.appendChild(actionsCell);
+                }
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Ajouter les écouteurs d'événements pour les boutons d'action
+            if (userRole === 'admin') {
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
+                });
+            }
+        }
+
+        // Mettre à jour le graphique
+        function updateChart() {
+            const ctx = document.getElementById('debt-chart').getContext('2d');
+            
+            // Préparer les données pour le graphique
+            const monthsData = {};
+            
+            // Obtenir les 6 derniers mois
+            const today = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthsData[monthKey] = 0;
+            }
+            
+            // Somme des dettes par mois
+            debts.forEach(debt => {
+                const debtDate = new Date(debt.date);
+                const monthKey = `${debtDate.getFullYear()}-${String(debtDate.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (monthsData[monthKey] !== undefined) {
+                    monthsData[monthKey] += debt.total;
+                }
+            });
+            
+            // Formater les étiquettes des mois
+            const monthNames = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
+            const labels = Object.keys(monthsData).map(key => {
+                const [year, month] = key.split('-');
+                return `${monthNames[parseInt(month) - 1]} ${year}`;
+            });
+            
+            // Créer ou mettre à jour le graphique
+            if (chart) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = Object.values(monthsData);
+                chart.update();
+            } else {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Tổng nợ (VND)',
+                            data: Object.values(monthsData),
+                            backgroundColor: 'rgba(78, 84, 200, 0.2)',
+                            borderColor: 'rgba(78, 84, 200, 1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.raw;
+                                        return `${value.toLocaleString('vi-VN')} VND`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('vi-VN');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Ouvrir la modal de suppression
+        function openDeleteModal(id) {
+            deleteId = id;
+            document.getElementById('delete-modal').classList.remove('hidden');
+            document.getElementById('delete-modal').classList.add('flex');
+        }
+
+        // Fermer la modal de suppression
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            document.getElementById('delete-modal').classList.remove('flex');
+        }
+
+        // Confirmer la suppression
+        function confirmDelete() {
+            if (deleteId) {
+                debts = debts.filter(debt => debt.id != deleteId);
+                saveData();
+                searchDebts();
+                updateChart();
+                closeDeleteModal();
+            }
+        }
+
+        // Ouvrir la modal d'édition
+        function openEditModal(id) {
+            const debt = debts.find(debt => debt.id == id);
+            if (debt) {
+                document.getElementById('edit-id').value = debt.id;
+                document.getElementById('edit-debtor').value = debt.debtor;
+                document.getElementById('edit-date').value = debt.date;
+                document.getElementById('edit-description').value = debt.description;
+                document.getElementById('edit-amount').value = debt.amount;
+                document.getElementById('edit-discount').value = debt.discount;
+                
+                document.getElementById('edit-modal').classList.remove('hidden');
+                document.getElementById('edit-modal').classList.add('flex');
+            }
+        }
+
+        // Fermer la modal d'édition
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+        }
+
+        // Sauvegarder les modifications
+        function saveEdit(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('edit-id').value;
+            const index = debts.findIndex(debt => debt.id == id);
+            
+            if (index !== -1) {
+                const debtor = document.getElementById('edit-debtor').value;
+                const date = document.getElementById('edit-date').value;
+                const description = document.getElementById('edit-description').value;
+                const amount = parseFloat(document.getElementById('edit-amount').value);
+                const discount = parseFloat(document.getElementById('edit-discount').value) || 0;
+                
+                debts[index] = {
+                    ...debts[index],
+                    debtor,
+                    date,
+                    description,
+                    amount,
+                    discount,
+                    total: amount - discount
+                };
+                
+                saveData();
+                searchDebts();
+                updateChart();
+                closeEditModal();
+            }
+        }
+
+        // Ajouter des données de démonstration si nécessaire à l'initialisation
+        if (!localStorage.getItem('debts')) {
+            debts = [...sampleDebts];
+            saveData();
+        }
+    </script>
 </body>
 </html>
